@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,9 +16,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.my.zone.Models.LoginCred;
 import com.my.zone.Models.User;
 import com.my.zone.Repo.NotesRepository;
 import com.my.zone.Repo.UserRepository;
+import com.my.zone.auth.AuthenticationService;
 
 import jakarta.validation.Valid;
 
@@ -32,7 +35,10 @@ public class MyController {
 	@Autowired
 	private NotesRepository notesRepository;
 
-	@GetMapping("/homes")
+	@Autowired
+	AuthenticationService authenticationService;
+
+	@GetMapping("/home")
 	public String homeGround() {
 		return "not possible";
 	}
@@ -42,23 +48,23 @@ public class MyController {
 		return "notes here";
 	}
 
-	@GetMapping("/auth")
-	public String authen() {
-		return "auth here";
+	@PostMapping("/login")
+	public ResponseEntity<?> authen(@RequestBody LoginCred cred) {
+		if (cred != null) {
+			String token = authenticationService.authenticate(cred.getEmail(), cred.getPassowrd());
+			return ResponseEntity.status(HttpStatus.OK).body(token);
+		}
+
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
 	}
 
 	@PostMapping("/reg")
 	synchronized public ResponseEntity<?> register(@Valid @RequestBody User user, BindingResult result) {
 		if (!result.hasErrors()) {
-
-			user.setDate(LocalDateTime.now());
-
 			try {
 				Optional<User> findById = repository.findById(user.getEmail());
 				if (findById.isEmpty()) {
-					User save = repository.save(user);
-					logger.info(save.toString());
-					return ResponseEntity.status(HttpStatus.OK).body(save);
+					return ResponseEntity.status(HttpStatus.OK).body(authenticationService.generateToken(user));
 				} else {
 					logger.info("User already exists");
 				}
