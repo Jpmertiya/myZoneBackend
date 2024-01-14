@@ -21,8 +21,8 @@ public class Endpoints {
 	@Bean
 	SecurityFilterChain chain(HttpSecurity httpSecurity) throws Exception {
 		return httpSecurity.csrf((c) -> c.disable()).authorizeHttpRequests((auth) -> {
-			auth.requestMatchers("/myzone/api/v1/reg").permitAll()
-			.requestMatchers("/myzone/api/v1/login").permitAll().anyRequest().authenticated();
+			auth.requestMatchers("/newsZone-ui").permitAll().requestMatchers("/swagger-ui/**").permitAll()
+					.requestMatchers("/newsZone-docs").permitAll().requestMatchers("/myzone/api/v1/login").permitAll().anyRequest().authenticated();
 		}).sessionManagement((sess) -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 				.authenticationProvider(authenticationProvider)
 				.addFilterBefore(authentication, UsernamePasswordAuthenticationFilter.class).build();
