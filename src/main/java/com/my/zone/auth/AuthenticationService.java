@@ -1,6 +1,7 @@
 package com.my.zone.auth;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,12 +32,10 @@ public class AuthenticationService {
 	AuthenticationManager manager;
 
 	public String generateToken(User user) {
-
 		user.setDate(LocalDateTime.now());
 		user.setPasswor(encoder.encode(user.getPasswor()));
 		User save = repository.save(user);
 		logger.info(save.toString());
-
 		String generateToken = jwtService.generateToken(user);
 		return generateToken;
 	}
@@ -47,6 +46,12 @@ public class AuthenticationService {
 				.orElseThrow(() -> new UsernameNotFoundException("user not found exception"));
 		String generateToken = jwtService.generateToken(users);
 		return generateToken;
+	}
+
+	public User getUser(String token) {
+		String userName = jwtService.getUserName(token);
+		User user = repository.findById(userName).orElseThrow(()->new UsernameNotFoundException("invalid username"));
+		return user;
 	}
 
 }
